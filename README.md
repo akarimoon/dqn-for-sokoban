@@ -42,10 +42,14 @@ The input shape is the map (maze) shape and the output shape is 4, the number of
 
 ## Player and Boxes
 I have named the player, __IB9__.
-![IB9](/images/ib9.png)
+
+![IB9](/images/ib9.png =250x)
+
 He will be trying to learn throughout this code. Although the implemented map has only one box, it is possible to set multiple boxes. Our objective is to move all the boxes (the yellow box) to the goal (the blue box). See below for image.
-![box](/images/box.png)
-![goal](/images/goal.png)
+
+![box](/images/box.png =250x)
+![goal](/images/goal.png =250x)
+
 The starting coordinates of IB9, boxes, and goal can be set as a hyperparameters. See line 573- in `search.py`. The coordinates should be set using a dictionary and passed to class `Maze` as an argument, `start_coords`.
 
 Example:
