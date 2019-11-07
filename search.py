@@ -383,7 +383,7 @@ class Maze:
 
             if win_rate > 0.9: self.epsilon = 0.05
             if sum(win_history[-hsize:]) == hsize:
-                print("Reached 100%% win rate at epoch: %d" % (epoch,))
+                print("Reached 100%% win rate at epoch: %d" % (epoch + 1,))
                 break
 
         if len(win_actions) >= 1:
@@ -430,7 +430,7 @@ class Maze:
 
         if pyxel.btn(pyxel.KEY_R):
             if len(self.one_action) == 0:
-                print("Finished action, saving to h5 file")
+                print("Finished action, saving to h5 file, press R again to exit")
                 self.save()
                 pyxel.quit()
             print("To run one step, press R")
@@ -576,8 +576,8 @@ if __name__ == "__main__":
     }
 
     start_coords = {
-        'IB9': (16, 16),
-        'box': [(32, 32)],
+        'IB9': (8, 16),
+        'box': [(32, 24)],
         'goal': (40, 24)
     }
 
