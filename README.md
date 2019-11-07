@@ -11,9 +11,7 @@ Note that the model and hyperparameters in the codes are not optimal (as of 11/0
 
 ## Algorithm
 I will leave the description of what a Q-learning to other websites and books. So as we all know, the update equation for Q-learning is,
-
 ![equation](http://www.sciweavers.org/tex2img.php?eq=Q%28s_t%2Ca_t%29%3DQ%28s_t%2Ca_t%29%2B%5Calpha%28r_%7Bt%2B1%7D%2B%5Clambda%5Cmax_%7B%5Calpha%7DQ%28s_%7Bt%2B1%7D%2Ca%29-Q%28s_t%2Ca_t%29%29%0A&bc=White&fc=Black&im=jpg&fs=12&ff=arev&edit=0)
-
 which can be written in code as,
 ```
 targets[i, action] = reward + self.discount * Q_sa
