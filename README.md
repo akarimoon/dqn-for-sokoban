@@ -26,12 +26,13 @@ Model is defined in `model.py` by `IB9Net` function as,
 def IB9Net(maze_shape, lr=0.001):
     maze_size = np.product(maze_shape)
     model = Sequential()
-    model.add(Dense(maze_size, input_shape=(maze_size,)))
-    model.add(Activation('relu'))
-    model.add(Dense(maze_size))
-    model.add(Activation('relu'))
-    model.add(Dense(8))
-    model.add(Activation('relu'))
+    model.add(Reshape((maze_shape[0], maze_shape[1], 1), input_shape=(maze_size, )))
+    model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(maze_shape[0], maze_shape[1], 1)))
+    model.add(Conv2D(32, (3, 3), activation='relu', input_shape=maze_shape))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Flatten())
+    model.add(Dense(16, activation='relu'))
+    model.add(Dense(8, activation='relu'))
     model.add(Dense(4))
     model.compile(optimizer='adam', loss='mse')
 
@@ -40,7 +41,11 @@ def IB9Net(maze_shape, lr=0.001):
 The input shape is the map (maze) shape and the output shape is 4, the number of actions that we can choose from, (left, up, right, down).
 
 ## Player and Boxes
-I have named the player, __IB9__. He will be trying to learn throughout this code. Although the implemented map has only one box, it is possible to set multiple boxes.
+I have named the player, __IB9__.
+![IB9](/images/ib9.png)
+He will be trying to learn throughout this code. Although the implemented map has only one box, it is possible to set multiple boxes. Our objective is to move all the boxes (the yellow box) to the goal (the blue box). See below for image.
+![box](/images/box.png)
+![goal](/images/goal.png)
 The starting coordinates of IB9, boxes, and goal can be set as a hyperparameters. See line 573- in `search.py`. The coordinates should be set using a dictionary and passed to class `Maze` as an argument, `start_coords`.
 
 Example:
@@ -67,13 +72,32 @@ The coordinates are all multiplied by 8 and (0, 0) is at the top left. This mean
 
 ## Maze (Map)
 The class `Maze` handles all visualization and training. It will first initialize the map by the `_reset` function.
- Then, it will run a number of epochs of training as written in `play_game` function. This will store the wins and losses as well as train our model.
+ Then, it will run a number of epochs of training as written in `play_game` function. This will store the wins and losses as well as train our model. The map we will use looks something like this (see below).
+![map](/images/map.png)
 
 ## View found route
 After training is finished, it will choose one route that resulted in a win (or choose the last game resulting in a loss). By pressing "R", you will be able to see how our beloved IB9 tries to work its way through the map.
 
 ## Hyperparameters
 The hyperparameters are adjustable in lines 553-570. `hyperparams` handles hyperparameters and `reward_dict` defines the reward for each action it takes.
+
+### Hyperparameters
+- `num_epochs`: Number of epochs
+- `discount`: Discount rate for updating Q value
+- `epsilon`: Rate IB9 will take a random action (exploration rate)
+- `min_reward`: If the total reward goes below this value, it will automatically move on to next epoch
+- `min_reward_decay`: Optiion of whether implementing decay rate for `min_reward`
+- `max_memory`: Number of episodes IB9 will remember while training
+- `model_lr_rate`: Learning rate for `IB9Net` (currently not used)
+- `model_num_epochs`: Number of epochs when fitting `IB9Net`
+- `model_batch_size`: Batch size for fitting `IB9Net`
+
+### Rewards
+- `visited`: Reward when visiting a cell that has already visited before, should be <0
+- `invalid`: Reward when trying to make an invalid move (move towards the wall), should be <0
+- `val_move`: Reward when making any move, should be <0 to prevent wandering but kept small
+- `val_move_box`: Reward when moving the box, should be >0
+- `goal`: Reward when IB9 was able to solve
 
 Example:
 ```
@@ -90,10 +114,11 @@ hyperparams = {
     }
 
 reward_dict = {
-    'visited': -0.6, #if it visits a cell that has already been visited, it will be penalized by -0.6
-    'invalid': -0.7, #if it tries to go towards a wall, it will be penalized by -0.7
-    'val_move': -0.04, #any move costs -0.04
-    'val_move_box': +0.8 #moving a box results in a reward of +0.8
+    'visited': -0.7,
+    'invalid': -0.8,
+    'val_move': -0.04,
+    'val_move_box': +0.6,
+    'goal': +1.0
 }
 ```
 
@@ -101,6 +126,7 @@ reward_dict = {
 - no additional arguments (default): run training
 - "-t" or "--train": same as default
 - "-f" or "--free": free play mode (__NOT COMPLETE__)
+- "-c" or "-call_pretrained": Use pretrained h5 file, specify h5 file
 
 ## Requirements
 - numpy

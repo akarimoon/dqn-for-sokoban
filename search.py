@@ -1,4 +1,5 @@
 import datetime
+import json
 import numpy as np
 import pyxel
 import math
@@ -233,6 +234,7 @@ class Maze:
             if self._check_goal2(box):
                 self.until_count -= 1
         if self.until_count == 0:
+            self.total_reward += self.reward_dict['goal']
             return 'win'
         return 'not_over'
 
@@ -367,8 +369,8 @@ class Maze:
 
                 inputs, targets = self.experience.get_data(data_size=self.data_size)
 
-                h = model.fit(inputs, targets, epochs=self.model_num_epochs, batch_size=self.model_batch_size, verbose=0)
-                loss = model.evaluate(inputs, targets, verbose=0)
+                h = self.model.fit(inputs, targets, epochs=self.model_num_epochs, batch_size=self.model_batch_size, verbose=0)
+                loss = self.model.evaluate(inputs, targets, verbose=0)
                 # time.sleep(3)
 
             if len(win_history) > hsize:
@@ -388,7 +390,7 @@ class Maze:
             self.one_action = random.choice(win_actions)
         else:
             self.one_action = _actions
-        if self.verbose: print(self.one_action)
+        if self.verbose: print("Found route: ", self.one_action)
         self._reset()
         self.play = False
 
@@ -428,12 +430,18 @@ class Maze:
 
         if pyxel.btn(pyxel.KEY_R):
             if len(self.one_action) == 0:
-                print("Finished action")
-                self._reset()
-            print("Run action, press R to run step by step")
+                print("Finished action, saving to h5 file")
+                self.save()
+                pyxel.quit()
+            print("To run one step, press R")
             action = action_str2num(self.one_action.pop(0))
             self.run_step(action)
             print(actions_dict[action])
+
+    def save(self):
+        self.model.save_weights(h5file, overwrite=True)
+        with open(json_file, "w") as outfile:
+            json.dump(self.model.to_json(), outfile)
 
     def update_simple(self):
         if pyxel.btn(pyxel.KEY_LEFT):
@@ -492,12 +500,6 @@ class Maze:
         for box in self.box:
             pyxel.blt(box.x, box.y, 0, 16, 8, 8, 8, 0)
 
-
-        # if self.until_count == 0:
-        #     pyxel.rect(11, 32, 52, 36, 15)
-        #     pyxel.text(11, 32, 'Game Clear!', pyxel.frame_count % 16)
-        #     self._reset()
-
     def draw_simple(self):
         self.clear_count = 0
         for box in self.box:
@@ -537,11 +539,13 @@ if __name__ == "__main__":
     parser = parse()
     args = parser.parse_args()
     free_play = args.free
+    use_pretrained = args.call_pretrained
 
     LEFT = 0
     UP = 1
     RIGHT = 2
     DOWN = 3
+
 
     # Actions dictionary
     actions_dict = {
@@ -552,32 +556,66 @@ if __name__ == "__main__":
     }
 
     hyperparams = {
-        'num_epochs': 100,
+        'num_epochs': 500,
         'discount': 0.9,
         'epsilon': 0.1,
         'min_reward': -10,
         'min_reward_decay': None,
         'max_memory': 30,
         'model_lr_rate': 0.001,
-        'model_num_epochs': 8,
+        'model_num_epochs': 20,
         'model_batch_size': 16
         }
 
     reward_dict = {
-        'visited': -0.6,
-        'invalid': -0.7,
+        'visited': -0.7,
+        'invalid': -0.8,
         'val_move': -0.04,
-        'val_move_box': +0.8
+        'val_move_box': +0.6,
+        'goal': +1.0
     }
 
     start_coords = {
-        'IB9': (8, 16),
-        'box': [(32, 24)],
+        'IB9': (16, 16),
+        'box': [(32, 32)],
         'goal': (40, 24)
     }
 
+    h5file = "ib9_conv.h5"
+    json_file = "ib9_conv.json"
+
     model = IB9Net(maze_shape=(6, 6), lr=hyperparams['model_lr_rate'])
+    model.summary()
+
+    if use_pretrained is not None:
+        print("loading weights from file: %s" % (use_pretrained,))
+        model.load_weights(use_pretrained)
 
     Maze(model, num_epochs=hyperparams['num_epochs'], discount=hyperparams['discount'],
          min_reward=hyperparams['min_reward'], epsilon=hyperparams['epsilon'], reward_dict=reward_dict, free_play=free_play,
          start_coords=start_coords)
+
+    IB9_starts = [(24, 16), (16, 16), (16, 16), (8, 16), (16, 16), (8, 16)]
+    box_starts = [[(32, 24)], [(32, 24)], [(32, 32)], [(32, 32)], [(24, 24)], [(16, 16)]]
+
+    # i = 0
+    # for ib_s, b_s in zip(IB9_starts, box_starts):
+    #     start_coords = {
+    #         'IB9': ib_s,
+    #         'box': b_s,
+    #         'goal': (40, 24)
+    #     }
+    #
+    #     model = IB9Net(maze_shape=(6, 6), lr=hyperparams['model_lr_rate'])
+    #     model.summary()
+    #
+    #     if i >= 1:
+    #         model.load_weights(h5file)
+    #
+    #     Maze(model, num_epochs=hyperparams['num_epochs'], discount=hyperparams['discount'],
+    #          min_reward=hyperparams['min_reward'], epsilon=hyperparams['epsilon'], reward_dict=reward_dict, free_play=free_play,
+    #          start_coords=start_coords)
+    #
+    #     model.save_weights(h5file, overwrite=True)
+    #     with open(json_file, "w") as outfile:
+    #         json.dump(model.to_json(), outfile)
