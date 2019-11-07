@@ -5,7 +5,7 @@ Sokoban is a [game](https://en.wikipedia.org/wiki/Sokoban) where the player push
 to goal, their "storage locations".
 
 ## What did I do?
-I implemented basic Q learning algorithm using keras and visualizing using [pyxel](https://github.com/kitao/pyxel).
+I implemented Q-learning algorithm/Deep Q-learning Network (DQN) using keras and visualizing using [pyxel](https://github.com/kitao/pyxel).
 
 Note that the model and hyperparameters in the codes are not optimal (as of 11/07/19).
 
@@ -27,14 +27,18 @@ def IB9Net(maze_shape, lr=0.001):
     maze_size = np.product(maze_shape)
     model = Sequential()
     model.add(Reshape((maze_shape[0], maze_shape[1], 1), input_shape=(maze_size, )))
-    model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(maze_shape[0], maze_shape[1], 1)))
-    model.add(Conv2D(32, (3, 3), activation='relu', input_shape=maze_shape))
+    model.add(Conv2D(64, (3, 3), activation='relu', input_shape=(maze_shape[0], maze_shape[1], 1)))
+    model.add(Conv2D(64, (2, 2), activation='relu', input_shape=(4, 4, 64)))
+    model.add(Conv2D(32, (2, 2), activation='relu', input_shape=(3, 3, 64)))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Flatten())
-    model.add(Dense(16, activation='relu'))
-    model.add(Dense(8, activation='relu'))
+    model.add(Dense(512, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(32, activation='relu'))
     model.add(Dense(4))
-    model.compile(optimizer='adam', loss='mse')
+
+    optim = Adam(lr=lr)
+    model.compile(optimizer=optim, loss='logcosh')
 
     return model
 ```
@@ -89,7 +93,9 @@ The hyperparameters are adjustable in lines 553-570. `hyperparams` handles hyper
 ### Hyperparameters
 - `num_epochs`: Number of epochs
 - `discount`: Discount rate for updating Q value
-- `epsilon`: Rate IB9 will take a random action (exploration rate)
+- `epsilon`: Initial rate IB9 will take a random action (exploration rate)
+- `final_epsilon`: The epsilon after number of steps
+- `exploration_steps`: The number of steps it will take to decrease `epsilon` to `final_epsilon`
 - `min_reward`: If the total reward goes below this value, it will automatically move on to next epoch
 - `min_reward_decay`: Optiion of whether implementing decay rate for `min_reward`
 - `max_memory`: Number of episodes IB9 will remember while training
@@ -108,14 +114,16 @@ The hyperparameters are adjustable in lines 553-570. `hyperparams` handles hyper
 Example:
 ```
 hyperparams = {
-    'num_epochs': 100,
-    'discount': 0.9,
-    'epsilon': 0.1,
+    'num_epochs': 200,
+    'discount': 0.99,
+    'epsilon': 1.0,
+    'final_epsilon': 0.1,
+    'exploration_steps': 1000,
     'min_reward': -10,
     'min_reward_decay': None,
-    'max_memory': 30,
-    'lr_rate': 0.01,
-    'model_lr_rate': 0.001,
+    'max_memory': 100,
+    'lr_rate': 0.1,
+    'model_lr_rate': 0.01,
     'model_num_epochs': 20,
     'model_batch_size': 16
     }

@@ -64,7 +64,8 @@ class Maze:
         self.max_memory = kwargs.pop('max_memory', 10)
         self.num_epochs = kwargs.pop('num_epochs', 100)
         self.data_size = kwargs.pop('data_size', 50)
-        self.epsilon = kwargs.pop('epsilon', 0.1)
+        self.epsilon = kwargs.pop('epsilon', 1.0)
+        self.final_epsilon = kwargs.pop('final_epsilon', 0.1)
         self.lr_rate = kwargs.pop('lr_rate', 0.1)
         self.model_num_epochs = kwargs.pop('model_num_epochs', 8)
         self.model_batch_size = kwargs.pop('model_batch_size', 16)
@@ -72,6 +73,7 @@ class Maze:
         self.min_reward = kwargs.pop('min_reward', -0.5 * 20)
         self.min_reward_decay = kwargs.pop('min_reward_decay', None)
         self.verbose = kwargs.pop('verbose', True)
+        exploration_steps = kwargs.pop('exploration_steps', 1000)
 
         self.free_play = kwargs.pop('free_play', False)
 
@@ -81,6 +83,7 @@ class Maze:
         self.shape = (48, 48)
         self.goal = self.start_coords['goal']
         self.play = True
+        self.epsilon_step = (self.epsilon - self.final_epsilon) / exploration_steps
 
         self.model = model
         self.experience = Experience(self.model, alpha=self.lr_rate, max_memory=self.max_memory, discount=self.discount)
@@ -341,6 +344,8 @@ class Maze:
                 else:
                     action = np.argmax(self.experience.predict(prev_envstate))
 
+                self.epsilon = max(self.final_epsilon, self.epsilon - self.epsilon_step)
+
                 envstate, reward, game_status = self.update_state(action)
                 action_history.append(actions_dict[action])
 
@@ -382,10 +387,10 @@ class Maze:
                 break
 
         if len(win_actions) >= 1:
-            self.one_action = random.choice(win_actions)
+            self.one_action = win_actions[-1]
         else:
             self.one_action = _actions
-        if self.verbose: print("Found route: ", self.one_action)
+        if self.verbose: print("Most recent route: ", self.one_action)
         self._reset()
         self.play = False
 
@@ -551,14 +556,16 @@ if __name__ == "__main__":
     }
 
     hyperparams = {
-        'num_epochs': 100,
-        'discount': 0.9,
-        'epsilon': 0.1,
+        'num_epochs': 200,
+        'discount': 0.99,
+        'epsilon': 1.0,
+        'final_epsilon': 0.1,
+        'exploration_steps': 1000,
         'min_reward': -10,
         'min_reward_decay': None,
-        'max_memory': 30,
-        'lr_rate': 0.01,
-        'model_lr_rate': 0.001,
+        'max_memory': 100,
+        'lr_rate': 0.1,
+        'model_lr_rate': 0.01,
         'model_num_epochs': 20,
         'model_batch_size': 16
         }
@@ -572,9 +579,8 @@ if __name__ == "__main__":
     }
 
     start_coords = {
-        # 'IB9': [(8, 16), (16, 16), (24, 16), (32, 8)],
         'IB9': (16, 8),
-        'box': [(40, 32)],
+        'box': [(32, 24)],
         'goal': (40, 24)
     }
 
@@ -589,8 +595,8 @@ if __name__ == "__main__":
         model.load_weights(use_pretrained)
 
     Maze(model, num_epochs=hyperparams['num_epochs'], discount=hyperparams['discount'], lr_rate=hyperparams['lr_rate'],
-         min_reward=hyperparams['min_reward'], epsilon=hyperparams['epsilon'], reward_dict=reward_dict, free_play=free_play,
-         start_coords=start_coords)
+         min_reward=hyperparams['min_reward'], epsilon=hyperparams['epsilon'], model_num_epochs=int(hyperparams['model_lr_rate']),
+         model_batch_size=int(hyperparams['model_batch_size']), reward_dict=reward_dict, start_coords=start_coords)
 
-    IB9_starts = [(24, 16), (16, 16), (16, 16), (8, 16), (16, 16), (8, 16)]
-    box_starts = [[(32, 24)], [(32, 24)], [(32, 32)], [(32, 32)], [(24, 24)], [(16, 16)]]
+    # IB9_starts = [(24, 16), (16, 16), (16, 16), (8, 16), (16, 16), (8, 16)]
+    # box_starts = [[(32, 24)], [(32, 24)], [(32, 32)], [(32, 32)], [(24, 24)], [(16, 16)]]
