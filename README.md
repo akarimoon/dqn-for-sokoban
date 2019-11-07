@@ -47,8 +47,8 @@ I have named the player, __IB9__.
 
 He will be trying to learn throughout this code. Although the implemented map has only one box, it is possible to set multiple boxes. Our objective is to move all the boxes (the yellow box) to the goal (the blue box). See below for image.
 
-<img src="/images/box.png" width="320px">
-<img src="/images/goal.png" width="320px">
+<img src="/images/box.png" width="160px">
+<img src="/images/goal.png" width="160px">
 
 The starting coordinates of IB9, boxes, and goal can be set as a hyperparameters. See line 573- in `search.py`. The coordinates should be set using a dictionary and passed to class `Maze` as an argument, `start_coords`.
 
