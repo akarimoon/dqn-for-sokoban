@@ -11,9 +11,9 @@ Note that the model and hyperparameters in the codes are not optimal (as of 11/0
 
 ## Algorithm
 I will leave the description of what a Q-learning to other websites and books. So as we all know, the update equation for Q-learning is,
-$$
+$
 Q(s_t,a_t)=Q(s_t,a_t)+\alpha(r_{t+1}+\lambda\max_{\alpha}Q(s_{t+1},a)-Q(s_t,a_t))
-$$
+$
 which can be written in code as,
 ```
 targets[i, action] = reward + self.discount * Q_sa
@@ -61,6 +61,9 @@ start_coords = {
 }
 ```
 However, conditions described in example is confirmed to find a route to clear the problem.
+
+### About the coordinates
+The coordinates are all multiplied by 8 and (0, 0) is at the top left. This means that one cell to the right or down will be adding 8.
 
 ## Maze (Map)
 The class `Maze` handles all visualization and training. It will first initialize the map by the `_reset` function.
