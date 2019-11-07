@@ -47,8 +47,8 @@ I have named the player, __IB9__.
 
 He will be trying to learn throughout this code. Although the implemented map has only one box, it is possible to set multiple boxes. Our objective is to move all the boxes (the yellow box) to the goal (the blue box). See below for image.
 
-![box](/images/box.png =250x)
-![goal](/images/goal.png =250x)
+<img src="/images/box.png" width="320px">
+<img src="/images/goal.png" width="320px">
 
 The starting coordinates of IB9, boxes, and goal can be set as a hyperparameters. See line 573- in `search.py`. The coordinates should be set using a dictionary and passed to class `Maze` as an argument, `start_coords`.
 
@@ -77,7 +77,8 @@ The coordinates are all multiplied by 8 and (0, 0) is at the top left. This mean
 ## Maze (Map)
 The class `Maze` handles all visualization and training. It will first initialize the map by the `_reset` function.
  Then, it will run a number of epochs of training as written in `play_game` function. This will store the wins and losses as well as train our model. The map we will use looks something like this (see below).
-![map](/images/map.png)
+
+<img src="/images/map.png" width="320px">
 
 ## View found route
 After training is finished, it will choose one route that resulted in a win (or choose the last game resulting in a loss). By pressing "R", you will be able to see how our beloved IB9 tries to work its way through the map.
