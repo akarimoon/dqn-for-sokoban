@@ -14,7 +14,9 @@ def IB9Net(maze_shape, lr=0.001):
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Flatten())
     model.add(Dense(16, activation='relu'))
+    model.add(Dropout(0.4))
     model.add(Dense(8, activation='relu'))
+    model.add(Dropout(0.4))
     model.add(Dense(4))
     model.compile(optimizer='adam', loss='mse')
 

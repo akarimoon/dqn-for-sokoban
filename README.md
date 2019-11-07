@@ -16,9 +16,9 @@ Q(s_t,a_t)=Q(s_t,a_t)+alpha*(r_{t+1}+lambda* max{Q(s_{t+1},a)}-Q(s_t,a_t))
 
 which can be written in code as,
 ```
-targets[i, action] = reward + self.discount * Q_sa
+targets[i, action] += self.alpha * (reward + self.discount * Q_sa - targets[i, action])
 ```
-where targets contain the Q values, action is the action we take, self.discount is the discount rate, and Q_{sa} is our predicted reward from our next action.
+where targets contain the Q values, action is the action we take, self.alpha is the learning rate, self.discount is the discount rate, and Q_{sa} is our predicted reward from our next action.
 
 ## Model
 Model is defined in `model.py` by `IB9Net` function as,
@@ -93,6 +93,7 @@ The hyperparameters are adjustable in lines 553-570. `hyperparams` handles hyper
 - `min_reward`: If the total reward goes below this value, it will automatically move on to next epoch
 - `min_reward_decay`: Optiion of whether implementing decay rate for `min_reward`
 - `max_memory`: Number of episodes IB9 will remember while training
+- `lr_rate`: Learning rate for updating Q values
 - `model_lr_rate`: Learning rate for `IB9Net` (currently not used)
 - `model_num_epochs`: Number of epochs when fitting `IB9Net`
 - `model_batch_size`: Batch size for fitting `IB9Net`
@@ -110,11 +111,12 @@ hyperparams = {
     'num_epochs': 100,
     'discount': 0.9,
     'epsilon': 0.1,
-    'min_reward': -20,
+    'min_reward': -10,
     'min_reward_decay': None,
     'max_memory': 30,
+    'lr_rate': 0.01,
     'model_lr_rate': 0.001,
-    'model_num_epochs': 8,
+    'model_num_epochs': 20,
     'model_batch_size': 16
     }
 

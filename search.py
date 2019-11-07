@@ -9,16 +9,6 @@ import time
 from parser import parse
 from model import IB9Net
 
-"""
-Define reward (values are in range [-1, 1])
-- Each step: -0.04 pt
-- Is wall: -0.8 pt
-- Visit again: -0.25 pt
-
-- Box at goal: +1.0 pt
-- Move box: +0.02 pt
-"""
-
 class IB9:
     def __init__(self, x, y):
         #coordinates
@@ -34,8 +24,9 @@ class Box:
         self.move = False
 
 class Experience:
-    def __init__(self, model, max_memory=100, discount=0.9):
+    def __init__(self, model, alpha=0.01, max_memory=100, discount=0.9):
         self.model = model
+        self.alpha = alpha
         self.max_memory = max_memory
         self.discount = discount
         self.memory = list()
@@ -63,7 +54,7 @@ class Experience:
             if game_over:
                 targets[i, action] = reward
             else:
-                targets[i, action] = reward + self.discount * Q_sa
+                targets[i, action] += self.alpha * (reward + self.discount * Q_sa - targets[i, action])
         return inputs, targets
 
 class Maze:
@@ -74,6 +65,7 @@ class Maze:
         self.num_epochs = kwargs.pop('num_epochs', 100)
         self.data_size = kwargs.pop('data_size', 50)
         self.epsilon = kwargs.pop('epsilon', 0.1)
+        self.lr_rate = kwargs.pop('lr_rate', 0.1)
         self.model_num_epochs = kwargs.pop('model_num_epochs', 8)
         self.model_batch_size = kwargs.pop('model_batch_size', 16)
         self.reward_dict = kwargs.pop('reward_dict', None)
@@ -91,7 +83,7 @@ class Maze:
         self.play = True
 
         self.model = model
-        self.experience = Experience(self.model, max_memory=self.max_memory, discount=self.discount)
+        self.experience = Experience(self.model, alpha=self.lr_rate, max_memory=self.max_memory, discount=self.discount)
 
         self._reset()
         pyxel.init(64, 64, caption='soko')
@@ -113,7 +105,10 @@ class Maze:
         self.total_reward = 0
 
         #initialize player
-        ib9_x, ib9_y = self.start_coords['IB9']
+        if type(self.start_coords['IB9']) == 'list':
+            ib9_x, ib9_y = random.choice(self.start_coords['IB9']) #if multiple starting coords, it will choose by random
+        else:
+            ib9_x, ib9_y = self.start_coords['IB9']
         self.IB9 = IB9(ib9_x, ib9_y)
         x, y = self.IB9.x, self.IB9.y
         self.state = (x, y, 'start')
@@ -556,12 +551,13 @@ if __name__ == "__main__":
     }
 
     hyperparams = {
-        'num_epochs': 500,
+        'num_epochs': 100,
         'discount': 0.9,
         'epsilon': 0.1,
         'min_reward': -10,
         'min_reward_decay': None,
         'max_memory': 30,
+        'lr_rate': 0.01,
         'model_lr_rate': 0.001,
         'model_num_epochs': 20,
         'model_batch_size': 16
@@ -576,8 +572,9 @@ if __name__ == "__main__":
     }
 
     start_coords = {
-        'IB9': (8, 16),
-        'box': [(32, 24)],
+        # 'IB9': [(8, 16), (16, 16), (24, 16), (32, 8)],
+        'IB9': (16, 8),
+        'box': [(40, 32)],
         'goal': (40, 24)
     }
 
@@ -591,31 +588,9 @@ if __name__ == "__main__":
         print("loading weights from file: %s" % (use_pretrained,))
         model.load_weights(use_pretrained)
 
-    Maze(model, num_epochs=hyperparams['num_epochs'], discount=hyperparams['discount'],
+    Maze(model, num_epochs=hyperparams['num_epochs'], discount=hyperparams['discount'], lr_rate=hyperparams['lr_rate'],
          min_reward=hyperparams['min_reward'], epsilon=hyperparams['epsilon'], reward_dict=reward_dict, free_play=free_play,
          start_coords=start_coords)
 
     IB9_starts = [(24, 16), (16, 16), (16, 16), (8, 16), (16, 16), (8, 16)]
     box_starts = [[(32, 24)], [(32, 24)], [(32, 32)], [(32, 32)], [(24, 24)], [(16, 16)]]
-
-    # i = 0
-    # for ib_s, b_s in zip(IB9_starts, box_starts):
-    #     start_coords = {
-    #         'IB9': ib_s,
-    #         'box': b_s,
-    #         'goal': (40, 24)
-    #     }
-    #
-    #     model = IB9Net(maze_shape=(6, 6), lr=hyperparams['model_lr_rate'])
-    #     model.summary()
-    #
-    #     if i >= 1:
-    #         model.load_weights(h5file)
-    #
-    #     Maze(model, num_epochs=hyperparams['num_epochs'], discount=hyperparams['discount'],
-    #          min_reward=hyperparams['min_reward'], epsilon=hyperparams['epsilon'], reward_dict=reward_dict, free_play=free_play,
-    #          start_coords=start_coords)
-    #
-    #     model.save_weights(h5file, overwrite=True)
-    #     with open(json_file, "w") as outfile:
-    #         json.dump(model.to_json(), outfile)
