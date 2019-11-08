@@ -1,4 +1,4 @@
-# Q-Learning for Sokoban Game
+# Deep Q-learning Network for Sokoban Game
 
 ## What is "Sokoban"?
 Sokoban is a [game](https://en.wikipedia.org/wiki/Sokoban) where the player pushes the crates around the warehouse, trying to get them
