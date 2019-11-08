@@ -353,7 +353,9 @@ class Maze:
                     if self.verbose: print("Win, next epoch")
                     win_history.append(1)
                     win_actions.append(action_history)
-                    if self.min_reward_decay is not None: self.min_reward *= self.min_reward_decay
+                    if self.min_reward_decay is not None:
+                        self.min_reward *= self.min_reward_decay
+                        self.min_reward = min(-10, self.min_reward_decay)
                     game_over = True
                 elif game_status == 'lose':
                     if self.verbose: print("Lost, next epoch")
@@ -556,7 +558,7 @@ if __name__ == "__main__":
     }
 
     hyperparams = {
-        'num_epochs': 200,
+        'num_epochs': 100,
         'discount': 0.99,
         'epsilon': 1.0,
         'final_epsilon': 0.1,
@@ -566,7 +568,7 @@ if __name__ == "__main__":
         'max_memory': 100,
         'lr_rate': 0.1,
         'model_lr_rate': 0.01,
-        'model_num_epochs': 20,
+        'model_num_epochs': 10,
         'model_batch_size': 16
         }
 
@@ -579,8 +581,8 @@ if __name__ == "__main__":
     }
 
     start_coords = {
-        'IB9': (16, 8),
-        'box': [(32, 24)],
+        'IB9': (8, 16),
+        'box': [(40, 32)],
         'goal': (40, 24)
     }
 
@@ -595,8 +597,8 @@ if __name__ == "__main__":
         model.load_weights(use_pretrained)
 
     Maze(model, num_epochs=hyperparams['num_epochs'], discount=hyperparams['discount'], lr_rate=hyperparams['lr_rate'],
-         min_reward=hyperparams['min_reward'], epsilon=hyperparams['epsilon'], model_num_epochs=int(hyperparams['model_lr_rate']),
-         model_batch_size=int(hyperparams['model_batch_size']), reward_dict=reward_dict, start_coords=start_coords)
+         min_reward=hyperparams['min_reward'], epsilon=hyperparams['epsilon'], model_num_epochs=hyperparams['model_num_epochs'],
+         model_batch_size=hyperparams['model_batch_size'], reward_dict=reward_dict, start_coords=start_coords)
 
     # IB9_starts = [(24, 16), (16, 16), (16, 16), (8, 16), (16, 16), (8, 16)]
     # box_starts = [[(32, 24)], [(32, 24)], [(32, 32)], [(32, 32)], [(24, 24)], [(16, 16)]]
