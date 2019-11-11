@@ -325,6 +325,7 @@ class Maze:
         # imctr = 1
 
         for epoch in range(self.num_epochs):
+            self.epsilon = 1.0
             loss = 0.0
             self._reset()
             game_over = False
@@ -558,7 +559,7 @@ if __name__ == "__main__":
     }
 
     hyperparams = {
-        'num_epochs': 100,
+        'num_epochs': 1000,
         'discount': 0.99,
         'epsilon': 1.0,
         'final_epsilon': 0.1,
@@ -574,7 +575,7 @@ if __name__ == "__main__":
 
     reward_dict = {
         'visited': -0.7,
-        'invalid': -0.8,
+        'invalid': -0.9,
         'val_move': -0.04,
         'val_move_box': +0.6,
         'goal': +1.0
@@ -582,7 +583,7 @@ if __name__ == "__main__":
 
     start_coords = {
         'IB9': (8, 16),
-        'box': [(40, 32)],
+        'box': [(32, 32)],
         'goal': (40, 24)
     }
 

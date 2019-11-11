@@ -11,10 +11,11 @@ def IB9Net(maze_shape, lr=0.001):
     model = Sequential()
     model.add(Reshape((maze_shape[0], maze_shape[1], 1), input_shape=(maze_size, )))
     model.add(Conv2D(32, (1, 1), activation='relu', input_shape=(maze_shape[0], maze_shape[1], 1)))
-    model.add(Conv2D(64, (2, 2), activation='relu', input_shape=(6, 6, 32)))
-    model.add(Conv2D(32, (2, 2), activation='relu', input_shape=(5, 5, 64)))
+    model.add(Conv2D(256, (2, 2), activation='relu', input_shape=(6, 6, 32)))
+    model.add(Conv2D(128, (2, 2), activation='relu', input_shape=(5, 5, 256)))
     model.add(Flatten())
     model.add(Dense(256, activation='relu'))
+    model.add(Dense(32, activation='relu'))
     model.add(Dense(4))
 
     optim = Adam(lr=lr)
