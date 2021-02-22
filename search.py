@@ -559,7 +559,7 @@ if __name__ == "__main__":
     }
 
     hyperparams = {
-        'num_epochs': 1000,
+        'num_epochs': 500,
         'discount': 0.99,
         'epsilon': 1.0,
         'final_epsilon': 0.1,
@@ -583,7 +583,7 @@ if __name__ == "__main__":
 
     start_coords = {
         'IB9': (8, 16),
-        'box': [(32, 32)],
+        'box': [(16, 16)],
         'goal': (40, 24)
     }
 
